@@ -33,24 +33,23 @@ export const CardList: React.FC<BoxProps> = () => {
   const [classes, setClasses] = React.useState([]);
 
   React.useEffect(() => {
-    const getInfo = async () => {
-      try {
-        const result = await Promise.all([api.query.auctions.auctions(0)]);
-        setAuctions(result);
-        console.log(result);
-      } catch (e) {
-        console.error(e);
-      }
+    let unsub = null;
+
+    const getAuctions = async () => {
+      unsub = await api.query.auctions.auctions(0, async (data) => {
+        setAuctions(data.toJSON());
+      });
     };
-    getInfo();
+
+    getAuctions();
+
+    return () => unsub && unsub();
   }, [api, setAuctions]);
 
   React.useEffect(() => {
     let unsub = null;
 
     const getClasses = async () => {
-      console.log(await api.runtimeMetadata);
-
       unsub = await api.query.ormlNft.classes(2, async (data) => {
         setClasses(data);
       });
@@ -121,10 +120,10 @@ export const CardList: React.FC<BoxProps> = () => {
         {/* {classes.map((listClass) => (
           <Box>{listClass.metadata.toString()}</Box>
         ))} */}
-        {JSON.stringify(classes, null, 2)}
+        {/* {JSON.stringify(classes, null, 2)} */}
         {JSON.stringify(auctions, null, 2)}
         {auctions &&
-          auctions
+          [auctions]
             // .filter((auction) => getFilters(auction))
             .map((auction) => <Card key={auction.id} auction={auction} />)}
       </Grid>
