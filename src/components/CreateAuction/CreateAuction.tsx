@@ -27,17 +27,13 @@ import {
 // Components
 import { TxButton } from '../../substrate-lib/components';
 
-// Graphql connection
-import gql from 'graphql-tag';
-import { useMutation } from 'urql';
-
 // Types
-import { Auction } from '@/@types/auction';
+// import { Auction } from '@/@types/auction';
 import { TxButtonType } from '../../substrate-lib/components/txButton.types';
 import { CreateAuctionProps } from './CreateAuction.types';
 
-// Date manipulation
-import moment from 'moment';
+// // Date manipulation
+// import moment from 'moment';
 
 // const AUCTION_MUTATION = gql`
 //   mutation NewAuction(
@@ -104,7 +100,7 @@ export const CreateAuction = ({
   // Transaction status
   const [status, setStatus] = React.useState(null);
 
-  const toast = useToast();
+  // const toast = useToast();
 
   // const submit = React.useCallback(() => {
   //   executeMutation({ type, startAt, endAt, startPrice }).then((data) => {

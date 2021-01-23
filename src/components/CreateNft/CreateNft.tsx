@@ -36,31 +36,25 @@ export const CreateNft = ({
 }: CreateNftProps): JSX.Element => {
   const initialRef = React.useRef();
 
-  // Create class
-  const [classMetadata, setClassMetadata] = React.useState<string>('');
-  const onClassMetadataChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setClassMetadata(e.target.value);
+  const [state, setState] = React.useState({
+    classMetadata: '',
+    classData: '',
+    mintClassId: null,
+    mintMetadata: '',
+    mintTokenData: '',
+  });
+
+  type FieldNames = {
+    classMetadata: string;
+    classData: string;
+    mintClassId: number;
+    mintMetadata: string;
+    mintTokenData: string;
   };
 
-  const [classData, setClassData] = React.useState<string>('');
-  const onClassDataChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setClassData(e.target.value);
-  };
-
-  // Mint
-  const [mintClassId, setMintClassId] = React.useState<number>(null);
-  const onMintClassIdChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setMintClassId(e.target.value);
-  };
-
-  const [mintMetadata, setMintMetadata] = React.useState<string>('');
-  const onMintMetadataChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setMintMetadata(e.target.value);
-  };
-  const [mintTokenData, setMintTokenData] = React.useState<string>('');
-  const onMintTokenDataChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setMintTokenData(e.target.value);
-  };
+  const handleChange = (fieldName: keyof FieldNames) => (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => setState({ ...state, [fieldName]: e.target.value });
 
   // Transaction status
   const [classStatus, setClassStatus] = React.useState<string>('');
@@ -86,16 +80,16 @@ export const CreateNft = ({
                     <FormControl id="classMetadata">
                       <FormLabel>Metadata</FormLabel>
                       <Input
-                        value={classMetadata}
-                        onChange={onClassMetadataChange}
+                        value={state.classMetadata}
+                        onChange={handleChange('classMetadata')}
                         size="lg"
                       />
                     </FormControl>
                     <FormControl id="classData">
                       <FormLabel>Data</FormLabel>
                       <Input
-                        value={classData}
-                        onChange={onClassDataChange}
+                        value={state.classData}
+                        onChange={handleChange('classData')}
                         size="lg"
                       />
                     </FormControl>
@@ -108,8 +102,8 @@ export const CreateNft = ({
                       attrs={{
                         palletRpc: 'nft',
                         callable: 'createClass',
-                        inputParams: [classMetadata, classData],
-                        paramFields: [true, true],
+                        inputParams: [state.classMetadata, state.classData],
+                        paramFields: [false, true],
                       }}
                     />
                     <Box>
@@ -122,24 +116,24 @@ export const CreateNft = ({
                     <FormControl id="classId">
                       <FormLabel>Class ID</FormLabel>
                       <Input
-                        value={mintClassId}
-                        onChange={onMintClassIdChange}
+                        value={state.mintClassId}
+                        onChange={handleChange('mintClassId')}
                         size="lg"
                       />
                     </FormControl>
                     <FormControl id="mintMetadata">
                       <FormLabel>Metadata</FormLabel>
                       <Input
-                        value={mintMetadata}
-                        onChange={onMintMetadataChange}
+                        value={state.mintMetadata}
+                        onChange={handleChange('mintMetadata')}
                         size="lg"
                       />
                     </FormControl>
-                    <FormControl id="mintMetadata">
+                    <FormControl id="mintTokenData">
                       <FormLabel>Token ID</FormLabel>
                       <Input
-                        value={mintTokenData}
-                        onChange={onMintTokenDataChange}
+                        value={state.mintTokenData}
+                        onChange={handleChange('mintTokenData')}
                         size="lg"
                       />
                     </FormControl>
@@ -152,8 +146,12 @@ export const CreateNft = ({
                       attrs={{
                         palletRpc: 'nft',
                         callable: 'mint',
-                        inputParams: [mintClassId, mintMetadata, mintTokenData],
-                        paramFields: [true, true, true],
+                        inputParams: [
+                          state.mintClassId,
+                          state.mintMetadata,
+                          state.mintTokenData,
+                        ],
+                        paramFields: [false, false, false],
                       }}
                     />
                     <Box>

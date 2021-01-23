@@ -24,8 +24,6 @@ export const Card: React.FC<BoxProps & Auction> = ({ auction }: CardProps) => {
   const bgColor = useColorModeValue('white', 'gray.900');
   const color = useColorModeValue('black', 'white');
 
-  console.log(auction);
-
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const dummy = {

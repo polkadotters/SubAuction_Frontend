@@ -30,12 +30,12 @@ const INIT_STATE = {
 
 type ContextProps = {
   socket: string;
-  jsonrpc: object;
-  types: object;
-  keyring: object;
+  jsonrpc: Record<string, unknown>;
+  types: Record<string, unknown>;
+  keyring: Record<string, unknown>;
   keyringState: string;
-  api: object;
-  apiError: object;
+  api: ApiPromise;
+  apiError: Record<string, unknown>;
   apiState: string;
 };
 
@@ -133,7 +133,7 @@ const SubstrateContext = React.createContext<Partial<ContextProps>>({});
 
 type SubstrateContextProviderProps = {
   socket: string;
-  types: object;
+  types: Record<string, unknown>;
   children: React.ReactNode;
 };
 
