@@ -68,10 +68,10 @@ export const CreateNft = ({
           <ModalHeader>Create new NFT</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
-            <Tabs>
+            <Tabs onChange={(index) => console.log(index)} isLazy>
               <TabList>
-                <Tab>Create NFT class</Tab>
-                <Tab>Mint NFT token</Tab>
+                <Tab>1. Create NFT class</Tab>
+                <Tab>2. Mint NFT token</Tab>
               </TabList>
 
               <TabPanels>
@@ -83,6 +83,7 @@ export const CreateNft = ({
                         value={state.classMetadata}
                         onChange={handleChange('classMetadata')}
                         size="lg"
+                        ref={initialRef}
                       />
                     </FormControl>
                     <FormControl id="classData">
@@ -119,6 +120,7 @@ export const CreateNft = ({
                         value={state.mintClassId}
                         onChange={handleChange('mintClassId')}
                         size="lg"
+                        ref={initialRef}
                       />
                     </FormControl>
                     <FormControl id="mintMetadata">
@@ -130,7 +132,7 @@ export const CreateNft = ({
                       />
                     </FormControl>
                     <FormControl id="mintTokenData">
-                      <FormLabel>Token ID</FormLabel>
+                      <FormLabel>Token Data</FormLabel>
                       <Input
                         value={state.mintTokenData}
                         onChange={handleChange('mintTokenData')}

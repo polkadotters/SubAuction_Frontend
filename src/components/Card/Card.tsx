@@ -9,19 +9,20 @@ import {
   Flex,
   useDisclosure,
 } from '@chakra-ui/react';
-
-// Types
-import { Auction } from '@/@types/auction';
+import { hexToString } from '@polkadot/util';
 
 // Date manipulation
 import moment from 'moment';
+
 import BidModal from '@/components/BidModal';
 
 // Types
 import { CardProps } from './Card.types';
-import { hexToString } from '@polkadot/util';
 
-export const Card: React.FC<BoxProps & Auction> = ({ auction }: CardProps) => {
+export const Card: React.FC<CardProps> = ({
+  auction,
+  accountPair,
+}: CardProps) => {
   const bgColor = useColorModeValue('white', 'gray.900');
   const color = useColorModeValue('black', 'white');
 
@@ -90,10 +91,14 @@ export const Card: React.FC<BoxProps & Auction> = ({ auction }: CardProps) => {
           {hexToString(auction.name)}
         </Box>
         <Flex alignItems="center">
-          <Box>{`${auction.minimal_bid} KSM`}</Box>
-          <Box as="span" ml="2" color="gray.600" fontSize="sm">
-            {`X bids`}
-          </Box>
+          <Box minW={16}>{`${
+            auction.last_bid[1] || auction.minimal_bid
+          } KSM`}</Box>
+          {auction.last_bid[0] && (
+            <Box as="span" ml="2" color="gray.600" fontSize="sm" isTruncated>
+              {`by ${auction.last_bid[0]}`}
+            </Box>
+          )}
         </Flex>
         {/* <Box>{`Owner: User #${auction.postedBy.id} `}</Box> */}
         <Box>{`Owner: Account xx `}</Box>
@@ -103,7 +108,7 @@ export const Card: React.FC<BoxProps & Auction> = ({ auction }: CardProps) => {
         </Button>
         <BidModal
           auction={auction}
-          price={auction.minimal_bid}
+          accountPair={accountPair}
           isOpen={isOpen}
           onClose={onClose}
         />

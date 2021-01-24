@@ -1,6 +1,10 @@
 export interface Auction {
   id: number;
-  title: string;
-  price: number;
-  endTime: string;
+  name: string;
+  last_bid: number;
+  start: number;
+  end: number;
+  auction_type: string;
+  minimal_bid: number;
+  token_id: [number, number];
 }

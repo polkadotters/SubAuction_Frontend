@@ -4,6 +4,7 @@ import { Grid, BoxProps, HStack, Button } from '@chakra-ui/react';
 import Card from '../Card/Card';
 
 import { useSubstrate } from '../../substrate-lib';
+import { CardListProps } from './CardList.types';
 
 // const FEED_QUERY = gql`
 //   {
@@ -27,7 +28,7 @@ import { useSubstrate } from '../../substrate-lib';
 
 // const [filters, setFilters] = React.useState('');
 
-export const CardList: React.FC<BoxProps> = () => {
+export const CardList = ({ accountPair }: CardListProps): JSX.Element => {
   const { api } = useSubstrate();
   const [auctions, setAuctions] = React.useState<Record<string, unknown>>(null);
   const [classes, setClasses] = React.useState([]);
@@ -125,7 +126,13 @@ export const CardList: React.FC<BoxProps> = () => {
         {auctions &&
           [auctions]
             // .filter((auction) => getFilters(auction))
-            .map((auction) => <Card key={auction.id} auction={auction} />)}
+            .map((auction) => (
+              <Card
+                key={auction.id}
+                auction={auction}
+                accountPair={accountPair}
+              />
+            ))}
       </Grid>
     </>
   );
