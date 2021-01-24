@@ -19,12 +19,11 @@ import BidModal from '@/components/BidModal';
 
 // Types
 import { CardProps } from './Card.types';
+import { hexToString } from '@polkadot/util';
 
 export const Card: React.FC<BoxProps & Auction> = ({ auction }: CardProps) => {
   const bgColor = useColorModeValue('white', 'gray.900');
   const color = useColorModeValue('black', 'white');
-
-  console.log(auction);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -88,7 +87,7 @@ export const Card: React.FC<BoxProps & Auction> = ({ auction }: CardProps) => {
           lineHeight="tight"
           isTruncated
         >
-          {auction.name}
+          {hexToString(auction.name)}
         </Box>
         <Flex alignItems="center">
           <Box>{`${auction.minimal_bid} KSM`}</Box>

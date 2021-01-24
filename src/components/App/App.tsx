@@ -6,7 +6,7 @@ import { useSubstrate } from '../../substrate-lib';
 import Layout from '@/components/Layout';
 import SEO from '@/components/Seo';
 import CardList from '@/components/CardList';
-import { Flex, Box, Heading, Text, Skeleton, Stack } from '@chakra-ui/react';
+import { Text, Skeleton, Stack } from '@chakra-ui/react';
 
 // import { getToken } from '@/utils/token'
 

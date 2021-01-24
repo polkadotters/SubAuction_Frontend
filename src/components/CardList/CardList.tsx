@@ -1,50 +1,64 @@
 import React from 'react';
-import gql from 'graphql-tag';
-import { useQuery } from 'urql';
 
-import { Grid, BoxProps, HStack, Button, Skeleton } from '@chakra-ui/react';
+import { Grid, BoxProps, HStack, Button } from '@chakra-ui/react';
 import Card from '../Card/Card';
 
 import { useSubstrate } from '../../substrate-lib';
 
-const FEED_QUERY = gql`
-  {
-    feed {
-      auctions {
-        id
-        createdAt
-        startAt
-        endAt
-        startPrice
-        postedBy {
-          id
-        }
-        bids {
-          price
-        }
-      }
-    }
-  }
-`;
+// const FEED_QUERY = gql`
+//   {
+//     feed {
+//       auctions {
+//         id
+//         createdAt
+//         startAt
+//         endAt
+//         startPrice
+//         postedBy {
+//           id
+//         }
+//         bids {
+//           price
+//         }
+//       }
+//     }
+//   }
+// `;
 
 // const [filters, setFilters] = React.useState('');
 
 export const CardList: React.FC<BoxProps> = () => {
   const { api } = useSubstrate();
   const [auctions, setAuctions] = React.useState<Record<string, unknown>>(null);
+  const [classes, setClasses] = React.useState([]);
 
   React.useEffect(() => {
-    const getInfo = async () => {
-      try {
-        const result = await Promise.all([api.query.auctions.auctions(0)]);
-        setAuctions(result);
-        console.log(result);
-      } catch (e) {
-        console.error(e);
-      }
+    let unsub = null;
+
+    const getAuctions = async () => {
+      unsub = await api.query.auctions.auctions(0, async (data) => {
+        setAuctions(data.toJSON());
+      });
     };
-    getInfo();
-  }, [api.query.auctions]);
+
+    getAuctions();
+
+    return () => unsub && unsub();
+  }, [api, setAuctions]);
+
+  React.useEffect(() => {
+    let unsub = null;
+
+    const getClasses = async () => {
+      unsub = await api.query.ormlNft.classes(2, async (data) => {
+        setClasses(data);
+      });
+    };
+
+    getClasses();
+
+    return () => unsub && unsub();
+  }, [api, setClasses]);
 
   const [auctionStatus, setAuctionStatus] = React.useState('live');
 
@@ -54,19 +68,19 @@ export const CardList: React.FC<BoxProps> = () => {
   // if (fetching) return <Skeleton></Skeleton>;
   // if (error) return <div>Error</div>;
 
-  const getFilters = (auction) => {
-    if (auctionStatus === 'upcoming') {
-      return new Date(auction.startAt) > new Date();
-    }
-    if (auctionStatus === 'past') {
-      return new Date(auction.endAt) < new Date();
-    } else {
-      return (
-        new Date(auction.startAt) < new Date() &&
-        new Date(auction.endAt) > new Date()
-      );
-    }
-  };
+  // const getFilters = (auction) => {
+  //   if (auctionStatus === 'upcoming') {
+  //     return new Date(auction.startAt) > new Date();
+  //   }
+  //   if (auctionStatus === 'past') {
+  //     return new Date(auction.endAt) < new Date();
+  //   } else {
+  //     return (
+  //       new Date(auction.startAt) < new Date() &&
+  //       new Date(auction.endAt) > new Date()
+  //     );
+  //   }
+  // };
 
   // const auctionsToRender = !fetching && data.feed.auctions;
 
@@ -103,9 +117,13 @@ export const CardList: React.FC<BoxProps> = () => {
         templateColumns="repeat(auto-fill, minmax(min(16rem, 100%), 1fr))"
         gap={6}
       >
+        {/* {classes.map((listClass) => (
+          <Box>{listClass.metadata.toString()}</Box>
+        ))} */}
+        {/* {JSON.stringify(classes, null, 2)} */}
         {JSON.stringify(auctions, null, 2)}
         {auctions &&
-          auctions
+          [auctions]
             // .filter((auction) => getFilters(auction))
             .map((auction) => <Card key={auction.id} auction={auction} />)}
       </Grid>

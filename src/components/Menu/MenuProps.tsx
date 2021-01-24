@@ -1,4 +1,4 @@
 export interface MenuProps {
   setAccountAddress: React.Dispatch<React.SetStateAction<string>>;
-  accountPair: object;
+  accountPair: Record<string, unknown>;
 }

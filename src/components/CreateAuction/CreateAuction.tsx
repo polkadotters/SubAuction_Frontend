@@ -22,22 +22,19 @@ import {
   useToast,
   Input,
   FormHelperText,
+  Stack,
 } from '@chakra-ui/react';
 
 // Components
 import { TxButton } from '../../substrate-lib/components';
 
-// Graphql connection
-import gql from 'graphql-tag';
-import { useMutation } from 'urql';
-
 // Types
-import { Auction } from '@/@types/auction';
+// import { Auction } from '@/@types/auction';
 import { TxButtonType } from '../../substrate-lib/components/txButton.types';
 import { CreateAuctionProps } from './CreateAuction.types';
 
-// Date manipulation
-import moment from 'moment';
+// // Date manipulation
+// import moment from 'moment';
 
 // const AUCTION_MUTATION = gql`
 //   mutation NewAuction(
@@ -69,42 +66,66 @@ export const CreateAuction = ({
 
   // const [state, executeMutation] = useMutation(AUCTION_MUTATION);
 
-  // Title
-  const [title, setTitle] = React.useState<string>('');
-  const onTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setTitle(e.target.value);
+  const [state, setState] = React.useState({
+    title: '',
+    price: null,
+    start: null,
+    end: null,
+    type: 'English',
+    tokenId: null,
+    tokenClass: null,
+  });
+
+  type FieldNames = {
+    title: string;
+    price: number;
+    start: number;
+    end: number;
+    type: string;
+    tokenId: number;
+    tokenClass: number;
   };
 
-  // Start price
-  const [price, setPrice] = React.useState<number>(0);
-  const onPriceChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setPrice(e.target.value);
-  };
+  const handleChange = (fieldName: keyof FieldNames) => (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => setState({ ...state, [fieldName]: e.target.value });
 
-  // Time
-  const [start, setStart] = React.useState<number>(0);
-  const onStartChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setStart(e.target.value);
-  };
-  const [end, setEnd] = React.useState<number>(0);
-  const onEndChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setEnd(e.target.value);
-  };
+  // // Title
+  // const [title, setTitle] = React.useState<string>('');
+  // const onTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   setTitle(e.target.value);
+  // };
 
-  // Token
-  const [tokenClass, setTokenClass] = React.useState<number>(0);
-  const onTokenClassChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setTokenClass(e.target.value);
-  };
-  const [tokenId, setTokenId] = React.useState<number>(0);
-  const onTokenIdChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setTokenId(e.target.value);
-  };
+  // // Start price
+  // const [price, setPrice] = React.useState<number>(0);
+  // const onPriceChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   setPrice(e.target.value);
+  // };
+
+  // // Time
+  // const [start, setStart] = React.useState<number>(0);
+  // const onStartChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   setStart(e.target.value);
+  // };
+  // const [end, setEnd] = React.useState<number>(0);
+  // const onEndChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   setEnd(e.target.value);
+  // };
+
+  // // Token
+  // const [tokenClass, setTokenClass] = React.useState<number>(0);
+  // const onTokenClassChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   setTokenClass(e.target.value);
+  // };
+  // const [tokenId, setTokenId] = React.useState<number>(0);
+  // const onTokenIdChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   setTokenId(e.target.value);
+  // };
 
   // Transaction status
   const [status, setStatus] = React.useState(null);
 
-  const toast = useToast();
+  // const toast = useToast();
 
   // const submit = React.useCallback(() => {
   //   executeMutation({ type, startAt, endAt, startPrice }).then((data) => {
@@ -128,56 +149,79 @@ export const CreateAuction = ({
           <ModalHeader>Create new auction</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
-            <FormControl id="title">
-              <FormLabel>Title</FormLabel>
-              <Input onChange={onTitleChange} value={title} size="lg" />
-              <FormHelperText>Pick a name for your auction</FormHelperText>
-            </FormControl>
-            <FormControl>
-              <FormLabel>Start price</FormLabel>
-              <InputGroup size="lg">
-                <InputLeftAddon>KSM</InputLeftAddon>
-                <NumberInput placeholder="Enter start price" size="lg" min={0}>
-                  <NumberInputField
-                    onChange={onPriceChange}
-                    value={price}
-                    ref={initialRef}
-                  />
-                  <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
-                </NumberInput>
-              </InputGroup>
-            </FormControl>
+            <Stack spacing={4}>
+              <FormControl id="title">
+                <FormLabel>Title</FormLabel>
+                <Input
+                  onChange={handleChange('title')}
+                  value={state.title}
+                  size="lg"
+                />
+                <FormHelperText>Pick a name for your auction</FormHelperText>
+              </FormControl>
+              <FormControl>
+                <FormLabel>Start price</FormLabel>
+                <InputGroup size="lg">
+                  <InputLeftAddon>KSM</InputLeftAddon>
+                  <NumberInput
+                    placeholder="Enter start price"
+                    size="lg"
+                    min={0}
+                  >
+                    <NumberInputField
+                      onChange={handleChange('price')}
+                      value={state.price}
+                      ref={initialRef}
+                    />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                </InputGroup>
+              </FormControl>
 
-            <FormControl id="start">
-              <FormLabel>Start</FormLabel>
-              <Input value={start} onChange={onStartChange} size="lg" />
-            </FormControl>
-            <FormControl id="end">
-              <FormLabel>End</FormLabel>
-              <Input value={end} onChange={onEndChange} size="lg" />
-            </FormControl>
+              <FormControl id="start">
+                <FormLabel>Start</FormLabel>
+                <Input
+                  value={state.start}
+                  onChange={handleChange('start')}
+                  size="lg"
+                />
+              </FormControl>
+              <FormControl id="end">
+                <FormLabel>End</FormLabel>
+                <Input
+                  value={state.end}
+                  onChange={handleChange('end')}
+                  size="lg"
+                />
+              </FormControl>
 
-            <FormControl id="tokenClass">
-              <FormLabel>Token class</FormLabel>
-              <Input
-                value={tokenClass}
-                onChange={onTokenClassChange}
-                size="lg"
-              />
-            </FormControl>
-            <FormControl id="tokenId">
-              <FormLabel>Token id</FormLabel>
-              <Input value={tokenId} onChange={onTokenIdChange} size="lg" />
-            </FormControl>
+              <FormControl id="tokenClass">
+                <FormLabel>Token class</FormLabel>
+                <Input
+                  value={state.tokenClass}
+                  onChange={handleChange('tokenClass')}
+                  size="lg"
+                />
+              </FormControl>
+              <FormControl id="tokenId">
+                <FormLabel>Token id</FormLabel>
+                <Input
+                  value={state.tokenId}
+                  onChange={handleChange('tokenId')}
+                  size="lg"
+                />
+              </FormControl>
 
-            <Text fontSize="sm" mt={6}>
-              You&apos;re about to create an auction for token ID {tokenId},
-              token class {tokenClass} with a starting price {price} KSM. Your
-              auction starts at block {start} and ends at block {end}.
-            </Text>
+              <Text fontSize="sm" mt={6}>
+                You&apos;re about to create an auction for token ID{' '}
+                {state.tokenId}, token class {state.tokenClass} with a starting
+                price {state.price} KSM. Your auction starts at block{' '}
+                {state.start} and ends at block {state.end}.
+              </Text>
+            </Stack>
           </ModalBody>
 
           <ModalFooter>
@@ -198,19 +242,23 @@ export const CreateAuction = ({
               attrs={{
                 palletRpc: 'auctions',
                 callable: 'createAuction',
-                inputParams: {
-                  name: title,
-                  start: start,
-                  end: end,
-                  auction_type: 'English',
-                  tokenClass,
-                  tokenId,
-                  minimal_bid: price,
-                },
+                inputParams: [
+                  {
+                    name: state.title,
+                    last_bid: null,
+                    start: state.start,
+                    end: state.end,
+                    auction_type: state.type,
+                    token_id: [state.tokenClass, state.tokenId],
+                    minimal_bid: state.price,
+                  },
+                ],
                 paramFields: [true],
               }}
             />
             <Text>{status}</Text>
+            {JSON.stringify(state, null, 2)}
+
             <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
         </ModalContent>

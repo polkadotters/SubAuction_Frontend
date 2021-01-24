@@ -14,7 +14,7 @@ interface TxButtonsProps {
   attrs: {
     palletRpc: string;
     callable: string;
-    inputParams: Array<string | number | boolean>;
+    inputParams: Array<string | number | boolean> | Record<string, unknown>[];
     paramFields: Array<string | number | boolean> | Record<string, unknown>;
   };
   label: string;

@@ -17,6 +17,7 @@ import { useSubstrate } from '@/substrate-lib';
 
 // Types
 import { MenuProps } from './MenuProps';
+import { BalanceProps } from './BalanceProps';
 
 // Components
 import CreateAuction from '@/components/CreateAuction';
@@ -170,7 +171,7 @@ export const Main = ({
   );
 };
 
-const BalanceAnnotation = (props) => {
+const BalanceAnnotation = (props: BalanceProps) => {
   const { accountSelected } = props;
   const { api } = useSubstrate();
   const [accountBalance, setAccountBalance] = React.useState(0);
