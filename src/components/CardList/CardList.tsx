@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Grid, BoxProps, HStack, Button } from '@chakra-ui/react';
+import { Grid, HStack, Button } from '@chakra-ui/react';
 import Card from '../Card/Card';
 
 import { useSubstrate } from '../../substrate-lib';
@@ -126,12 +126,8 @@ export const CardList = ({ accountPair }: CardListProps): JSX.Element => {
         {auctions &&
           [auctions]
             // .filter((auction) => getFilters(auction))
-            .map((auction) => (
-              <Card
-                key={auction.id}
-                auction={auction}
-                accountPair={accountPair}
-              />
+            .map((auction, index) => (
+              <Card key={index} auction={auction} accountPair={accountPair} />
             ))}
       </Grid>
     </>

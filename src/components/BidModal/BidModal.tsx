@@ -54,8 +54,6 @@ export const BidModal = ({
 
   const [state, executeMutation] = useMutation(BID_MUTATION);
 
-  console.log(accountPair);
-
   // Transaction status
   const [status, setStatus] = React.useState(null);
 
@@ -122,7 +120,7 @@ export const BidModal = ({
           </ModalBody>
 
           <ModalFooter>
-            <Button
+            {/* <Button
               colorScheme="blue"
               mr={3}
               onClick={submit}
@@ -130,7 +128,7 @@ export const BidModal = ({
               isLoading={state.fetching}
             >
               Bid
-            </Button>
+            </Button> */}
             <TxButton
               accountPair={accountPair}
               label="Bid"

@@ -3,13 +3,16 @@ import {
   Badge,
   Image,
   Box,
-  BoxProps,
+  Text,
+  Avatar,
   useColorModeValue,
   Button,
   Flex,
   useDisclosure,
+  Tooltip,
 } from '@chakra-ui/react';
 import { hexToString } from '@polkadot/util';
+import { useSubstrate } from '../../substrate-lib';
 
 // Date manipulation
 import moment from 'moment';
@@ -23,6 +26,9 @@ export const Card: React.FC<CardProps> = ({
   auction,
   accountPair,
 }: CardProps) => {
+  const { api } = useSubstrate();
+  const [owner, setOwner] = React.useState<string>(null);
+
   const bgColor = useColorModeValue('white', 'gray.900');
   const color = useColorModeValue('black', 'white');
 
@@ -52,6 +58,24 @@ export const Card: React.FC<CardProps> = ({
       return `ends ${moment(auction.endAt).fromNow()}`;
     }
   };
+
+  React.useEffect(() => {
+    let unsub = null;
+
+    const getOwner = async () => {
+      unsub = await api.query.ormlNft.tokens(
+        auction.token_id[0],
+        auction.token_id[1],
+        async (data) => {
+          setOwner(data.toJSON().owner);
+        },
+      );
+    };
+
+    getOwner();
+
+    return () => unsub && unsub();
+  }, [api, setOwner]);
 
   return (
     <Box
@@ -92,16 +116,34 @@ export const Card: React.FC<CardProps> = ({
         </Box>
         <Flex alignItems="center">
           <Box minW={16}>{`${
-            auction.last_bid[1] || auction.minimal_bid
+            auction.last_bid ? auction.last_bid[1] : auction.minimal_bid
           } KSM`}</Box>
-          {auction.last_bid[0] && (
-            <Box as="span" ml="2" color="gray.600" fontSize="sm" isTruncated>
-              {`by ${auction.last_bid[0]}`}
-            </Box>
-          )}
+          {auction.last_bid ? (
+            <Flex align="center">
+              <Text fontSize="sm" color="gray.600" mr="2">
+                by
+              </Text>
+
+              <Tooltip
+                hasArrow
+                placement="top"
+                label={auction.last_bid[0]}
+                aria-label="Last bid"
+              >
+                <Avatar size="xs" />
+              </Tooltip>
+            </Flex>
+          ) : null}
         </Flex>
-        {/* <Box>{`Owner: User #${auction.postedBy.id} `}</Box> */}
-        <Box>{`Owner: Account xx `}</Box>
+        {owner && (
+          <Flex align="center">
+            <Text mr="2">Owner</Text>
+
+            <Tooltip hasArrow placement="top" label={owner} aria-label="Owner">
+              <Avatar size="xs" />
+            </Tooltip>
+          </Flex>
+        )}
 
         <Button colorScheme="blue" variant="link" onClick={onOpen}>
           Place a bid
