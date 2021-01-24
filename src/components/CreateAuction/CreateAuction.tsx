@@ -23,6 +23,7 @@ import {
   Input,
   FormHelperText,
   Stack,
+  HStack,
 } from '@chakra-ui/react';
 
 // Components
@@ -89,38 +90,6 @@ export const CreateAuction = ({
   const handleChange = (fieldName: keyof FieldNames) => (
     e: React.ChangeEvent<HTMLInputElement>,
   ): void => setState({ ...state, [fieldName]: e.target.value });
-
-  // // Title
-  // const [title, setTitle] = React.useState<string>('');
-  // const onTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   setTitle(e.target.value);
-  // };
-
-  // // Start price
-  // const [price, setPrice] = React.useState<number>(0);
-  // const onPriceChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   setPrice(e.target.value);
-  // };
-
-  // // Time
-  // const [start, setStart] = React.useState<number>(0);
-  // const onStartChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   setStart(e.target.value);
-  // };
-  // const [end, setEnd] = React.useState<number>(0);
-  // const onEndChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   setEnd(e.target.value);
-  // };
-
-  // // Token
-  // const [tokenClass, setTokenClass] = React.useState<number>(0);
-  // const onTokenClassChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   setTokenClass(e.target.value);
-  // };
-  // const [tokenId, setTokenId] = React.useState<number>(0);
-  // const onTokenIdChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   setTokenId(e.target.value);
-  // };
 
   // Transaction status
   const [status, setStatus] = React.useState(null);
@@ -234,32 +203,32 @@ export const CreateAuction = ({
             >
               Create auction
             </Button> */}
-            <TxButton
-              accountPair={accountPair}
-              label="Create auction"
-              type={TxButtonType.SIGNEDTX}
-              setStatus={setStatus}
-              attrs={{
-                palletRpc: 'auctions',
-                callable: 'createAuction',
-                inputParams: [
-                  {
-                    name: state.title,
-                    last_bid: null,
-                    start: state.start,
-                    end: state.end,
-                    auction_type: state.type,
-                    token_id: [state.tokenClass, state.tokenId],
-                    minimal_bid: state.price,
-                  },
-                ],
-                paramFields: [true],
-              }}
-            />
-            <Text>{status}</Text>
-            {JSON.stringify(state, null, 2)}
-
-            <Button onClick={onClose}>Cancel</Button>
+            <HStack spacing={4}>
+              <TxButton
+                accountPair={accountPair}
+                label="Create auction"
+                type={TxButtonType.SIGNEDTX}
+                setStatus={setStatus}
+                attrs={{
+                  palletRpc: 'auctions',
+                  callable: 'createAuction',
+                  inputParams: [
+                    {
+                      name: state.title,
+                      last_bid: null,
+                      start: state.start,
+                      end: state.end,
+                      auction_type: state.type,
+                      token_id: [state.tokenClass, state.tokenId],
+                      minimal_bid: state.price,
+                    },
+                  ],
+                  paramFields: [false],
+                }}
+              />
+              <Text>{status}</Text>
+              <Button onClick={onClose}>Cancel</Button>
+            </HStack>
           </ModalFooter>
         </ModalContent>
       </Modal>

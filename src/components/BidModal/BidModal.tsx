@@ -22,12 +22,17 @@ import {
   useToast,
 } from '@chakra-ui/react';
 
+// Utils
+import { hexToString } from '@polkadot/util';
+
 // Graphql connection
 import gql from 'graphql-tag';
 import { useMutation } from 'urql';
 
 // Types
-import { Auction } from '@/@types/auction';
+import { TxButtonType } from '@/substrate-lib/components/txButton.types';
+import { BidModalProps } from './BidModal.types';
+import { TxButton } from '@/substrate-lib/components/TxButton';
 
 const BID_MUTATION = gql`
   mutation NewBid($auctionId: ID!, $price: Float!) {
@@ -37,24 +42,22 @@ const BID_MUTATION = gql`
   }
 `;
 
-type BidModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  price: number;
-  auction: Auction;
-};
-
 export const BidModal = ({
   isOpen,
   onClose,
-  price,
   auction,
+  accountPair,
 }: BidModalProps): JSX.Element => {
   const initialRef = React.useRef();
 
-  const [bidValue, setBidValue] = React.useState(Math.ceil(price * 1.1));
+  const [bidValue, setBidValue] = React.useState(auction.minimal_bid);
 
   const [state, executeMutation] = useMutation(BID_MUTATION);
+
+  console.log(accountPair);
+
+  // Transaction status
+  const [status, setStatus] = React.useState(null);
 
   const toast = useToast();
 
@@ -90,7 +93,7 @@ export const BidModal = ({
                   size="lg"
                   onChange={(val) => setBidValue(parseInt(val))}
                   value={bidValue}
-                  min={Math.ceil(price * 1.1)}
+                  min={auction.minimal_bid}
                 >
                   <NumberInputField ref={initialRef} />
                   <NumberInputStepper>
@@ -102,11 +105,18 @@ export const BidModal = ({
             </FormControl>
 
             <Text fontSize="sm" fontStyle="italic" mt={2}>
-              Minimum bid is {Math.ceil(price * 1.1)} KSM
+              Minimum bid is {auction.minimal_bid} KSM
             </Text>
             <Text fontSize="sm" mt={6}>
-              You&apos;re about to place a bid on auction #{auction?.id}.
-              We&apos;ll transfer your funds to an escrow. If somebody places
+              You&apos;re about to place a bid of{' '}
+              <Text as="span" fontWeight="bold">
+                {bidValue} KSM
+              </Text>{' '}
+              on auction{' '}
+              <Text as="span" fontWeight="bold">
+                {hexToString(auction.name)}
+              </Text>
+              . We&apos;ll transfer your funds to an escrow. If somebody places
               higher bid, you get the funds back automatically.
             </Text>
           </ModalBody>
@@ -121,6 +131,20 @@ export const BidModal = ({
             >
               Bid
             </Button>
+            <TxButton
+              accountPair={accountPair}
+              label="Bid"
+              type={TxButtonType.SIGNEDTX}
+              setStatus={setStatus}
+              attrs={{
+                palletRpc: 'auctions',
+                callable: 'bidValue',
+                // To-do: swap 0 for auction.Id
+                inputParams: [0, bidValue],
+                paramFields: [false, false],
+              }}
+            />
+            <Text>{status}</Text>
             <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
         </ModalContent>

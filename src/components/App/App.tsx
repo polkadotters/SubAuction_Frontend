@@ -50,7 +50,7 @@ const App = (): JSX.Element => {
           </Box>
           <Box bgColor="gray.400">Čus</Box>
         </Flex> */}
-      <CardList />
+      <CardList accountPair={accountPair} />
     </Layout>
   );
 };
