@@ -19,41 +19,29 @@ import {
   NumberInputStepper,
   InputGroup,
   InputLeftAddon,
-  useToast,
   Input,
-  FormHelperText,
   Stack,
   HStack,
+  Progress,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
 } from '@chakra-ui/react';
 
 // Components
 import { TxButton } from '../../substrate-lib/components';
+import Radio from './Form/Radio';
 
 // Types
 // import { Auction } from '@/@types/auction';
 import { TxButtonType } from '../../substrate-lib/components/txButton.types';
 import { CreateAuctionProps } from './CreateAuction.types';
+import { nftList } from '@/utils/nft';
 
 // // Date manipulation
 // import moment from 'moment';
-
-// const AUCTION_MUTATION = gql`
-//   mutation NewAuction(
-//     $type: String!
-//     $startAt: DateTime!
-//     $endAt: DateTime!
-//     $startPrice: Float!
-//   ) {
-//     createAuction(
-//       type: $type
-//       startAt: $startAt
-//       endAt: $endAt
-//       startPrice: $startPrice
-//     ) {
-//       id
-//     }
-//   }
-// `;
 
 export const CreateAuction = ({
   isOpen,
@@ -67,15 +55,18 @@ export const CreateAuction = ({
 
   // const [state, executeMutation] = useMutation(AUCTION_MUTATION);
 
+  const options = nftList.map((i) => i[0][1].join('-'));
+
   const [state, setState] = React.useState({
     title: '',
-    price: null,
+    price: 0,
     start: null,
     end: null,
     type: 'English',
-    tokenId: null,
-    tokenClass: null,
+    token: options[0] || '',
   });
+
+  const [tokenClass, tokenId] = state.token && state.token.split('-');
 
   type FieldNames = {
     title: string;
@@ -83,91 +74,145 @@ export const CreateAuction = ({
     start: number;
     end: number;
     type: string;
-    tokenId: number;
-    tokenClass: number;
+    token: string;
   };
 
   const handleChange = (fieldName: keyof FieldNames) => (
     e: React.ChangeEvent<HTMLInputElement>,
-  ): void => setState({ ...state, [fieldName]: e.target.value });
+  ): void =>
+    fieldName === 'price'
+      ? setState({ ...state, [fieldName]: e })
+      : setState({ ...state, [fieldName]: e.target.value });
+
+  const handleToken = (token): void => setState({ ...state, ['token']: token });
 
   // Transaction status
   const [status, setStatus] = React.useState(null);
 
-  // const toast = useToast();
+  // Form steps
+  const [tabIndex, setTabIndex] = React.useState(0);
 
-  // const submit = React.useCallback(() => {
-  //   executeMutation({ type, startAt, endAt, startPrice }).then((data) => {
-  //     console.log(data);
-  //     if (data.error) {
-  //       toast({
-  //         title: 'Oh, something went wrong.',
-  //         description: data.error.message,
-  //         status: 'error',
-  //         isClosable: true,
-  //       });
-  //     }
-  //   });
-  // }, [executeMutation, type, startAt, endAt, startPrice]);
+  const handleTabsChange = (index) => {
+    setTabIndex(index);
+  };
+
+  const validation = [
+    state.token,
+    state.title,
+    state.price,
+    state.start && state.end,
+  ];
 
   return (
     <>
-      <Modal initialFocusRef={initialRef} isOpen={isOpen} onClose={onClose}>
+      <Modal
+        initialFocusRef={initialRef}
+        isOpen={isOpen}
+        onClose={onClose}
+        size="xl"
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Create new auction</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <Stack spacing={4}>
-              <FormControl id="title">
-                <FormLabel>Title</FormLabel>
-                <Input
-                  onChange={handleChange('title')}
-                  value={state.title}
-                  size="lg"
-                />
-                <FormHelperText>Pick a name for your auction</FormHelperText>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Start price</FormLabel>
-                <InputGroup size="lg">
-                  <InputLeftAddon>KSM</InputLeftAddon>
-                  <NumberInput
-                    placeholder="Enter start price"
-                    size="lg"
-                    min={0}
-                  >
-                    <NumberInputField
-                      onChange={handleChange('price')}
-                      value={state.price}
-                      ref={initialRef}
-                    />
-                    <NumberInputStepper>
-                      <NumberIncrementStepper />
-                      <NumberDecrementStepper />
-                    </NumberInputStepper>
-                  </NumberInput>
-                </InputGroup>
-              </FormControl>
+              <Progress value={tabIndex} max={4} size="sm" />
+              <Tabs index={tabIndex} onChange={handleTabsChange}>
+                <TabList color="gray.300">
+                  <Tab fontSize="2xl">NFT</Tab>
+                  <Tab fontSize="2xl">Title</Tab>
+                  <Tab fontSize="2xl">Price</Tab>
+                  <Tab fontSize="2xl">Duration</Tab>
+                  <Tab fontSize="2xl">Summary</Tab>
+                </TabList>
+                <TabPanels>
+                  <TabPanel>
+                    <FormLabel fontSize="lg">What are you selling?</FormLabel>
+                    <Radio options={options} handleChange={handleToken} />
+                  </TabPanel>
+                  <TabPanel>
+                    <FormControl id="email">
+                      <FormLabel>Pick a name for your auction</FormLabel>
+                      <Input
+                        onChange={handleChange('title')}
+                        value={state.title}
+                        size="lg"
+                      />
+                    </FormControl>
+                  </TabPanel>
+                  <TabPanel>
+                    <FormLabel fontSize="lg">Set a starting price</FormLabel>
+                    <InputGroup size="lg">
+                      <InputLeftAddon>KSM</InputLeftAddon>
+                      <NumberInput
+                        placeholder="Enter start price"
+                        size="lg"
+                        min={0}
+                        defaultValue={state.price}
+                        onChange={handleChange('price')}
+                        value={state.price}
+                        maxW={32}
+                      >
+                        <NumberInputField />
+                        <NumberInputStepper>
+                          <NumberIncrementStepper />
+                          <NumberDecrementStepper />
+                        </NumberInputStepper>
+                      </NumberInput>
+                    </InputGroup>
+                  </TabPanel>
+                  <TabPanel>
+                    <FormControl id="start">
+                      <FormLabel fontSize="lg">
+                        Set the start block for auction
+                      </FormLabel>
+                      <Input
+                        value={state.start}
+                        onChange={handleChange('start')}
+                        size="lg"
+                      />
+                    </FormControl>
+                    <FormControl id="end" mt={4}>
+                      <FormLabel fontSize="lg">
+                        Set the end block for auction
+                      </FormLabel>
+                      <Input
+                        value={state.end}
+                        onChange={handleChange('end')}
+                        size="lg"
+                      />
+                    </FormControl>
+                  </TabPanel>
+                  <TabPanel>
+                    <Text fontSize="lg" mt={6}>
+                      You&apos;re about to create an auction{' '}
+                      <Text as="span" fontWeight="bold">
+                        {state.title}
+                      </Text>{' '}
+                      for token{' '}
+                      <Text as="span" fontWeight="bold">
+                        (ID: {tokenId}, class: {tokenClass})
+                      </Text>
+                      , with a starting price{' '}
+                      <Text as="span" fontWeight="bold">
+                        {state.price} KSM
+                      </Text>
+                      . Your auction starts at{' '}
+                      <Text as="span" fontWeight="bold">
+                        block {state.start}
+                      </Text>{' '}
+                      and ends at{' '}
+                      <Text as="span" fontWeight="bold">
+                        block {state.end}
+                      </Text>
+                      .
+                    </Text>
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
 
-              <FormControl id="start">
-                <FormLabel>Start</FormLabel>
-                <Input
-                  value={state.start}
-                  onChange={handleChange('start')}
-                  size="lg"
-                />
-              </FormControl>
-              <FormControl id="end">
-                <FormLabel>End</FormLabel>
-                <Input
-                  value={state.end}
-                  onChange={handleChange('end')}
-                  size="lg"
-                />
-              </FormControl>
-
-              <FormControl id="tokenClass">
+              {/* <FormControl id="tokenClass">
                 <FormLabel>Token class</FormLabel>
                 <Input
                   value={state.tokenClass}
@@ -182,53 +227,49 @@ export const CreateAuction = ({
                   onChange={handleChange('tokenId')}
                   size="lg"
                 />
-              </FormControl>
-
-              <Text fontSize="sm" mt={6}>
-                You&apos;re about to create an auction for token ID{' '}
-                {state.tokenId}, token class {state.tokenClass} with a starting
-                price {state.price} KSM. Your auction starts at block{' '}
-                {state.start} and ends at block {state.end}.
-              </Text>
+              </FormControl> */}
             </Stack>
           </ModalBody>
 
           <ModalFooter>
-            {/* <Button
-              colorScheme="blue"
-              mr={3}
-              onClick={submit}
-              disabled={state.fetching}
-              isLoading={state.fetching}
-            >
-              Create auction
-            </Button> */}
             <HStack spacing={4}>
-              <TxButton
-                accountPair={accountPair}
-                label="Create auction"
-                type={TxButtonType.SIGNEDTX}
-                setStatus={setStatus}
-                attrs={{
-                  palletRpc: 'auctions',
-                  callable: 'createAuction',
-                  inputParams: [
-                    {
-                      name: state.title,
-                      last_bid: null,
-                      start: state.start,
-                      end: state.end,
-                      auction_type: state.type,
-                      token_id: [state.tokenClass, state.tokenId],
-                      minimal_bid: state.price,
-                    },
-                  ],
-                  paramFields: [false],
-                }}
-              />
-              <Text>{status}</Text>
-              <Button onClick={onClose}>Cancel</Button>
+              {tabIndex !== 0 && (
+                <Button onClick={() => setTabIndex(tabIndex - 1)}>Back</Button>
+              )}
+              {tabIndex !== 4 ? (
+                <Button
+                  colorScheme="blue"
+                  onClick={() => setTabIndex(tabIndex + 1)}
+                  isDisabled={!validation[tabIndex]}
+                >
+                  Next
+                </Button>
+              ) : (
+                <TxButton
+                  accountPair={accountPair}
+                  label="Create auction"
+                  type={TxButtonType.SIGNEDTX}
+                  setStatus={setStatus}
+                  attrs={{
+                    palletRpc: 'auctions',
+                    callable: 'createAuction',
+                    inputParams: [
+                      {
+                        name: state.title,
+                        last_bid: null,
+                        start: state.start,
+                        end: state.end,
+                        auction_type: state.type,
+                        token_id: [tokenClass, tokenId],
+                        minimal_bid: state.price,
+                      },
+                    ],
+                    paramFields: [false],
+                  }}
+                />
+              )}
             </HStack>
+            {/* <Text>{status}</Text> */}
           </ModalFooter>
         </ModalContent>
       </Modal>

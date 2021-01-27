@@ -25,6 +25,7 @@ import { CardProps } from './Card.types';
 export const Card: React.FC<CardProps> = ({
   auction,
   accountPair,
+  id,
 }: CardProps) => {
   const { api } = useSubstrate();
   const [owner, setOwner] = React.useState<string>(null);
@@ -72,7 +73,7 @@ export const Card: React.FC<CardProps> = ({
       );
     };
 
-    getOwner();
+    auction && getOwner();
 
     return () => unsub && unsub();
   }, [api, setOwner]);
@@ -121,7 +122,7 @@ export const Card: React.FC<CardProps> = ({
           {auction.last_bid ? (
             <Flex align="center">
               <Text fontSize="sm" color="gray.600" mr="2">
-                by
+                last bid
               </Text>
 
               <Tooltip
@@ -153,6 +154,8 @@ export const Card: React.FC<CardProps> = ({
           accountPair={accountPair}
           isOpen={isOpen}
           onClose={onClose}
+          id={id}
+          // React-Hot-Loader: App container
         />
       </Box>
     </Box>

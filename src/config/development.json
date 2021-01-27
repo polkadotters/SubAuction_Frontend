@@ -35,5 +35,20 @@
     },
     "AuctionInfoOf": "AuctionInfo"
   },
-  "PROVIDER_SOCKET": "ws://127.0.0.1:9944"
+  "PROVIDER_SOCKET": "ws://127.0.0.1:9944",
+  "RPC": {
+    "auctions": {
+      "auctions": {
+        "description": "Get auctions",
+        "params": [
+          {
+            "name": "AuctionId",
+            "type": "AuctionId",
+            "isOptional": true
+          }
+        ],
+        "type": "AuctionInfoOf"
+      }
+    }
+  }
 }
