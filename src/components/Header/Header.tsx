@@ -8,14 +8,13 @@ import {
   useColorMode,
   Stack,
   IconButton,
-  Button,
-  useDisclosure,
+  Text,
 } from '@chakra-ui/react';
 import { SunIcon, MoonIcon } from '@chakra-ui/icons';
 import { HeaderProps } from './HeaderProps';
 
-import { getToken } from '@/utils/token';
 import Menu from '@/components/Menu';
+import BlockNumber from '../BlockNumber/BlockNumber';
 
 const Header = ({
   siteTitle,
@@ -23,19 +22,26 @@ const Header = ({
   accountPair,
 }: HeaderProps): JSX.Element => {
   const { colorMode, toggleColorMode } = useColorMode();
-  const isLoggedIn = !!getToken();
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
     <Box as="header" mb="6">
       <Box m="0 auto" maxW="960" px="6" py="5">
         <Stack justify="space-between" align="center" flexDirection="row">
-          <Heading as="h1" m="0">
-            <Link as={GatsbyLink} to="/" textDecoration="none">
-              {siteTitle}
-            </Link>
-          </Heading>
+          <Stack alignItems="center" isInline spacing={8}>
+            <Heading as="h1" m="0">
+              <Link
+                as={GatsbyLink}
+                to="/"
+                textDecoration="none"
+                _hover={{ textDecor: 'none' }}
+              >
+                <Text bgGradient="linear(to-l, #7928CA,#FF0080)" bgClip="text">
+                  {siteTitle}
+                </Text>
+              </Link>
+            </Heading>
+            <BlockNumber finalized />
+          </Stack>
           <Stack alignItems="center" isInline spacing={4}>
             <Menu
               setAccountAddress={setAccountAddress}

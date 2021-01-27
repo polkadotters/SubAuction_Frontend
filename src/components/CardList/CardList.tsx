@@ -1,59 +1,104 @@
 import React from 'react';
 
-import { Grid, BoxProps, HStack, Button } from '@chakra-ui/react';
+import { Grid, HStack, Button } from '@chakra-ui/react';
 import Card from '../Card/Card';
 
 import { useSubstrate } from '../../substrate-lib';
 import { CardListProps } from './CardList.types';
 
-// const FEED_QUERY = gql`
-//   {
-//     feed {
-//       auctions {
-//         id
-//         createdAt
-//         startAt
-//         endAt
-//         startPrice
-//         postedBy {
-//           id
-//         }
-//         bids {
-//           price
-//         }
-//       }
-//     }
-//   }
-// `;
+import { xxhashAsHex } from '@polkadot/util-crypto';
+import { nftList } from '@/utils/nft';
 
 // const [filters, setFilters] = React.useState('');
 
 export const CardList = ({ accountPair }: CardListProps): JSX.Element => {
   const { api } = useSubstrate();
-  const [auctions, setAuctions] = React.useState<Record<string, unknown>>(null);
+  const [auctions, setAuctions] = React.useState([]);
   const [classes, setClasses] = React.useState([]);
+  const [tokensList, setTokensList] = React.useState([]);
+
+  React.useEffect(() => {
+    const unsub = null;
+
+    const getTokensByOwner = async () => {
+      // unsub = await api.query.ormlNft.classes(null, async (data) => {
+      //   console.log('nfts: ', data.toJSON());
+      // });
+
+      setTokensList(nftList);
+    };
+
+    accountPair && getTokensByOwner();
+
+    return () => unsub && unsub();
+  }, [api, accountPair, setTokensList]);
 
   React.useEffect(() => {
     let unsub = null;
 
     const getAuctions = async () => {
-      unsub = await api.query.auctions.auctions(0, async (data) => {
-        setAuctions(data.toJSON());
+      unsub = await api.query.auctions.nextAuctionId((res) => {
+        const length = parseInt(res.toString());
+        const auctionIdArr = Array.from(Array(length).keys());
+        const auctionList = [];
+        for (const id in auctionIdArr) {
+          api.query.auctions.auctions(id, async (data) => {
+            auctionList.push(data.toJSON());
+          });
+        }
+        setAuctions(auctionList);
       });
+
+      // unsub = await api.query.auctions.auctions(id, async (data) => {
+      //   setAuctions({ ...auctions, [id]: data.toJSON() });
+      // });
+
+      // unsub = await api.query.auctions.auctions(6, async (data) => {
+      //   setAuctions([data, data]);
+      // });
+
+      // unsub = await api.rpc.state.getKeysPaged(
+      //   '0x53aafa26381dc69f4424ecfa11278236ca32a41f4b3ed515863dc0a38697f84e',
+      //   100,
+      //   async (data) => {
+      //     data
+      //       ? await api.rpc.state.queryStorageAt(
+      //           data.toJSON(),
+      //           async (rawRes) => {
+      //             const roles = rawRes
+      //               .map((r) => r.toHuman())
+      //               .map((r) => hexToString(r));
+      //             console.log(roles);
+      //             setAuctions(roles);
+      //           },
+      //         )
+      //       : null;
+      //     console.log('keys: ', data.toJSON());
+      //   },
+      // );
     };
 
-    getAuctions();
+    api && getAuctions();
 
     return () => unsub && unsub();
-  }, [api, setAuctions]);
+  }, [setAuctions, api]);
 
   React.useEffect(() => {
-    let unsub = null;
+    const unsub = null;
 
     const getClasses = async () => {
-      unsub = await api.query.ormlNft.classes(2, async (data) => {
-        setClasses(data);
-      });
+      console.log(
+        xxhashAsHex('ormlNft', 64) + xxhashAsHex('classes', 64).substr(2),
+      );
+      // unsub = await api.rpc.state.getKeysPaged(
+      //   xxhashAsHex(['Auctions','Auctions'],64),
+      //   100,
+      //   '0xca32a41f4b3ed51541756374696f6e73ca32a41f4b3ed51541756374696f6e73',
+      //   async (data) => {
+      //     setClasses(data);
+      //     console.log(data);
+      //   },
+      // );
     };
 
     getClasses();
@@ -62,12 +107,6 @@ export const CardList = ({ accountPair }: CardListProps): JSX.Element => {
   }, [api, setClasses]);
 
   const [auctionStatus, setAuctionStatus] = React.useState('live');
-
-  // const [result] = useQuery({ query: FEED_QUERY });
-  // const { data, fetching, error } = result;
-
-  // if (fetching) return <Skeleton></Skeleton>;
-  // if (error) return <div>Error</div>;
 
   // const getFilters = (auction) => {
   //   if (auctionStatus === 'upcoming') {
@@ -82,8 +121,6 @@ export const CardList = ({ accountPair }: CardListProps): JSX.Element => {
   //     );
   //   }
   // };
-
-  // const auctionsToRender = !fetching && data.feed.auctions;
 
   return (
     <>
@@ -121,14 +158,13 @@ export const CardList = ({ accountPair }: CardListProps): JSX.Element => {
         {/* {classes.map((listClass) => (
           <Box>{listClass.metadata.toString()}</Box>
         ))} */}
-        {/* {JSON.stringify(classes, null, 2)} */}
-        {JSON.stringify(auctions, null, 2)}
-        {auctions &&
-          [auctions]
+        {auctions.length > 0 &&
+          auctions
             // .filter((auction) => getFilters(auction))
-            .map((auction) => (
+            .map((auction, index) => (
               <Card
-                key={auction.id}
+                key={index}
+                id={index}
                 auction={auction}
                 accountPair={accountPair}
               />

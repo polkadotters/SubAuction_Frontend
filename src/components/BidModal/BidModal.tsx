@@ -19,62 +19,39 @@ import {
   NumberInputStepper,
   InputGroup,
   InputLeftAddon,
-  useToast,
 } from '@chakra-ui/react';
 
 // Utils
 import { hexToString } from '@polkadot/util';
-
-// Graphql connection
-import gql from 'graphql-tag';
-import { useMutation } from 'urql';
 
 // Types
 import { TxButtonType } from '@/substrate-lib/components/txButton.types';
 import { BidModalProps } from './BidModal.types';
 import { TxButton } from '@/substrate-lib/components/TxButton';
 
-const BID_MUTATION = gql`
-  mutation NewBid($auctionId: ID!, $price: Float!) {
-    bid(auctionId: $auctionId, price: $price) {
-      id
-    }
-  }
-`;
-
 export const BidModal = ({
   isOpen,
   onClose,
   auction,
   accountPair,
+  id,
 }: BidModalProps): JSX.Element => {
   const initialRef = React.useRef();
 
-  const [bidValue, setBidValue] = React.useState(auction.minimal_bid);
+  const [state, setState] = React.useState({
+    bid: auction.minimal_bid || 0,
+  });
 
-  const [state, executeMutation] = useMutation(BID_MUTATION);
+  type FieldNames = {
+    bid: number;
+  };
 
-  console.log(accountPair);
+  const handleChange = (fieldName: keyof FieldNames) => (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => setState({ ...state, [fieldName]: e });
 
   // Transaction status
   const [status, setStatus] = React.useState(null);
-
-  const toast = useToast();
-
-  const submit = React.useCallback(() => {
-    executeMutation({ auctionId: auction?.id, price: bidValue }).then(
-      (data) => {
-        if (data.error) {
-          toast({
-            title: 'Oh, something went wrong.',
-            description: data.error.message,
-            status: 'error',
-            isClosable: true,
-          });
-        }
-      },
-    );
-  }, [executeMutation, auction?.id, bidValue]);
 
   return (
     <>
@@ -91,8 +68,8 @@ export const BidModal = ({
                 <NumberInput
                   placeholder="Enter your amount"
                   size="lg"
-                  onChange={(val) => setBidValue(parseInt(val))}
-                  value={bidValue}
+                  onChange={handleChange('bid')}
+                  value={state.bid}
                   min={auction.minimal_bid}
                 >
                   <NumberInputField ref={initialRef} />
@@ -110,7 +87,7 @@ export const BidModal = ({
             <Text fontSize="sm" mt={6}>
               You&apos;re about to place a bid of{' '}
               <Text as="span" fontWeight="bold">
-                {bidValue} KSM
+                {state.bid} KSM
               </Text>{' '}
               on auction{' '}
               <Text as="span" fontWeight="bold">
@@ -122,7 +99,7 @@ export const BidModal = ({
           </ModalBody>
 
           <ModalFooter>
-            <Button
+            {/* <Button
               colorScheme="blue"
               mr={3}
               onClick={submit}
@@ -130,7 +107,7 @@ export const BidModal = ({
               isLoading={state.fetching}
             >
               Bid
-            </Button>
+            </Button> */}
             <TxButton
               accountPair={accountPair}
               label="Bid"
@@ -140,11 +117,12 @@ export const BidModal = ({
                 palletRpc: 'auctions',
                 callable: 'bidValue',
                 // To-do: swap 0 for auction.Id
-                inputParams: [0, bidValue],
+                inputParams: [id, state.bid],
                 paramFields: [false, false],
               }}
             />
             <Text>{status}</Text>
+            {JSON.stringify(state, null, 2)}
             <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
         </ModalContent>

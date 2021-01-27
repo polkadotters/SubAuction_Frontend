@@ -3,7 +3,6 @@ import React from 'react';
 import {
   Text,
   Button,
-  FormControl,
   FormLabel,
   Modal,
   ModalBody,
@@ -39,7 +38,7 @@ export const CreateNft = ({
   const [state, setState] = React.useState({
     classMetadata: '',
     classData: '',
-    mintClassId: null,
+    mintClassId: '',
     mintMetadata: '',
     mintTokenData: '',
   });
@@ -58,7 +57,9 @@ export const CreateNft = ({
 
   // Transaction status
   const [classStatus, setClassStatus] = React.useState<string>('');
-  const [mintStatus, setMintStatus] = React.useState<string>('');
+  const [mintStatus, setMintStatus] = React.useState<Record<string, unknown>>(
+    {},
+  );
 
   return (
     <>
@@ -77,23 +78,20 @@ export const CreateNft = ({
               <TabPanels>
                 <TabPanel>
                   <Stack spacing={4}>
-                    <FormControl id="classMetadata">
-                      <FormLabel>Metadata</FormLabel>
-                      <Input
-                        value={state.classMetadata}
-                        onChange={handleChange('classMetadata')}
-                        size="lg"
-                        ref={initialRef}
-                      />
-                    </FormControl>
-                    <FormControl id="classData">
-                      <FormLabel>Data</FormLabel>
-                      <Input
-                        value={state.classData}
-                        onChange={handleChange('classData')}
-                        size="lg"
-                      />
-                    </FormControl>
+                    <FormLabel>Metadata</FormLabel>
+                    <Input
+                      value={state.classMetadata}
+                      onChange={handleChange('classMetadata')}
+                      size="lg"
+                      ref={initialRef}
+                    />
+
+                    <FormLabel>Data</FormLabel>
+                    <Input
+                      value={state.classData}
+                      onChange={handleChange('classData')}
+                      size="lg"
+                    />
 
                     <TxButton
                       accountPair={accountPair}
@@ -114,31 +112,29 @@ export const CreateNft = ({
                 </TabPanel>
                 <TabPanel>
                   <Stack spacing={4}>
-                    <FormControl id="classId">
-                      <FormLabel>Class ID</FormLabel>
-                      <Input
-                        value={state.mintClassId}
-                        onChange={handleChange('mintClassId')}
-                        size="lg"
-                        ref={initialRef}
-                      />
-                    </FormControl>
-                    <FormControl id="mintMetadata">
-                      <FormLabel>Metadata</FormLabel>
-                      <Input
-                        value={state.mintMetadata}
-                        onChange={handleChange('mintMetadata')}
-                        size="lg"
-                      />
-                    </FormControl>
-                    <FormControl id="mintTokenData">
-                      <FormLabel>Token Data</FormLabel>
-                      <Input
-                        value={state.mintTokenData}
-                        onChange={handleChange('mintTokenData')}
-                        size="lg"
-                      />
-                    </FormControl>
+                    <FormLabel>Class ID</FormLabel>
+                    <Input
+                      value={state.mintClassId}
+                      onChange={handleChange('mintClassId')}
+                      size="lg"
+                      ref={initialRef}
+                    />
+
+                    <FormLabel>Metadata</FormLabel>
+                    <Input
+                      value={state.mintMetadata}
+                      onChange={handleChange('mintMetadata')}
+                      size="lg"
+                    />
+
+                    <FormLabel>Token Data</FormLabel>
+                    <Input
+                      value={state.mintTokenData}
+                      onChange={handleChange('mintTokenData')}
+                      size="lg"
+                      type="number"
+                      min="0"
+                    />
 
                     <TxButton
                       accountPair={accountPair}
@@ -157,7 +153,9 @@ export const CreateNft = ({
                       }}
                     />
                     <Box>
-                      <Text>{mintStatus}</Text>
+                      <Text>
+                        {JSON.stringify(mintStatus.dispatchError, null, 2)}
+                      </Text>
                     </Box>
                   </Stack>
                 </TabPanel>

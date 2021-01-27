@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Box } from '@chakra-ui/react';
+import { Button, Box, useToast } from '@chakra-ui/react';
 import { web3FromSource } from '@polkadot/extension-dapp';
 
 import { useSubstrate } from '..';
@@ -37,6 +37,8 @@ const TxButton = ({
   const { api } = useSubstrate();
   const [unsub, setUnsub] = useState(null);
   const [sudoKey, setSudoKey] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const toast = useToast();
 
   const { palletRpc, callable, inputParams, paramFields } = attrs;
 
@@ -79,10 +81,41 @@ const TxButton = ({
     return fromAcct;
   };
 
-  const txResHandler = ({ status }) =>
+  const txResHandler = ({ dispatchError, status }) => {
+    if (dispatchError !== undefined) {
+      setIsLoading(false);
+      let message = dispatchError.type;
+      if (dispatchError.isModule) {
+        try {
+          const mod = dispatchError.asModule;
+          const error = dispatchError.registry.findMetaError(mod);
+
+          message = `${error.section}.${error.name}`;
+        } catch (error) {
+          // swallow
+        }
+      }
+      toast({
+        title: 'Something went wrong',
+        description: message,
+        status: 'error',
+      });
+      return;
+    }
+
     status.isFinalized
-      ? setStatus(`😉 Finalized. Block hash: ${status.asFinalized.toString()}`)
+      ? setStatus('')
       : setStatus(`Current transaction status: ${status.type}`);
+
+    if (status.isFinalized) {
+      setIsLoading(false);
+      toast({
+        title: 'All done!',
+        description: `Block hash: ${status.asFinalized.toString()}`,
+        status: 'success',
+      });
+    }
+  };
 
   const txErrHandler = (err) =>
     setStatus(`😞 Transaction Failed: ${err.toString()}`);
@@ -175,7 +208,7 @@ const TxButton = ({
     }
 
     setStatus('Sending...');
-
+    setIsLoading(true);
     (isSudo() && sudoTx()) ||
       (isUncheckedSudo() && uncheckedSudoTx()) ||
       (isSigned() && signedTx()) ||
@@ -275,12 +308,14 @@ const TxButton = ({
       colorScheme={colorScheme}
       type="submit"
       onClick={transaction}
+      isLoading={isLoading}
       disabled={
         disabled ||
         !palletRpc ||
         !callable ||
         !allParamsFilled() ||
-        ((isSudo() || isUncheckedSudo()) && !isSudoer(accountPair))
+        ((isSudo() || isUncheckedSudo()) && !isSudoer(accountPair)) ||
+        isLoading
       }
     >
       {label}
@@ -300,7 +335,7 @@ const TxGroupButton = (props) => {
 
       <TxButton
         label="Signed"
-        type={TxButtonType.ISGNEDTX}
+        type={TxButtonType.SIGNEDTX}
         color="blue"
         {...props}
       />

@@ -5,4 +5,5 @@ export interface BidModalProps {
   onClose: () => void;
   accountPair: Record<string, unknown>;
   auction: Auction;
+  id: number;
 }
