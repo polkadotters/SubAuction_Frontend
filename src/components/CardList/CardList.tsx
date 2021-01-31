@@ -1,126 +1,96 @@
 import React from 'react';
 
-import { Grid, HStack, Button } from '@chakra-ui/react';
+import {
+  Grid,
+  HStack,
+  Button,
+  Box,
+  Center,
+  Stack,
+  Heading,
+  useDisclosure,
+} from '@chakra-ui/react';
 import Card from '../Card/Card';
+import CreateNft from '../CreateNft';
 
 import { useSubstrate } from '../../substrate-lib';
 import { CardListProps } from './CardList.types';
 
 import { xxhashAsHex } from '@polkadot/util-crypto';
-import { nftList } from '@/utils/nft';
+
+// Types
+import { Moment } from '@polkadot/types/interfaces';
+import CreateAuction from '../CreateAuction';
 
 // const [filters, setFilters] = React.useState('');
 
 export const CardList = ({ accountPair }: CardListProps): JSX.Element => {
   const { api } = useSubstrate();
+
   const [auctions, setAuctions] = React.useState([]);
-  const [classes, setClasses] = React.useState([]);
-  const [tokensList, setTokensList] = React.useState([]);
+  const [auctionStatus, setAuctionStatus] = React.useState('live');
+  const [numberTimer, setNumberTimer] = React.useState(0);
 
-  React.useEffect(() => {
-    const unsub = null;
+  // Create auction
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-    const getTokensByOwner = async () => {
-      // unsub = await api.query.ormlNft.classes(null, async (data) => {
-      //   console.log('nfts: ', data.toJSON());
-      // });
+  // Create Nft
+  const {
+    isOpen: isOpenNft,
+    onOpen: onOpenNft,
+    onClose: onCloseNft,
+  } = useDisclosure();
 
-      setTokensList(nftList);
-    };
+  // const timer = () => {
+  //   setNumberTimer((time) => time + 1);
+  // };
 
-    accountPair && getTokensByOwner();
-
-    return () => unsub && unsub();
-  }, [api, accountPair, setTokensList]);
+  // React.useEffect(() => {
+  //   const id = setInterval(timer, 3000);
+  //   return () => clearInterval(id);
+  // }, []);
 
   React.useEffect(() => {
     let unsub = null;
 
     const getAuctions = async () => {
-      unsub = await api.query.auctions.nextAuctionId((res) => {
-        const length = parseInt(res.toString());
-        const auctionIdArr = Array.from(Array(length).keys());
-        const auctionList = [];
-        for (const id in auctionIdArr) {
-          api.query.auctions.auctions(id, async (data) => {
-            auctionList.push(data.toJSON());
-          });
-        }
-        setAuctions(auctionList);
-      });
-
-      // unsub = await api.query.auctions.auctions(id, async (data) => {
-      //   setAuctions({ ...auctions, [id]: data.toJSON() });
-      // });
-
-      // unsub = await api.query.auctions.auctions(6, async (data) => {
-      //   setAuctions([data, data]);
-      // });
-
-      // unsub = await api.rpc.state.getKeysPaged(
-      //   '0x53aafa26381dc69f4424ecfa11278236ca32a41f4b3ed515863dc0a38697f84e',
-      //   100,
-      //   async (data) => {
-      //     data
-      //       ? await api.rpc.state.queryStorageAt(
-      //           data.toJSON(),
-      //           async (rawRes) => {
-      //             const roles = rawRes
-      //               .map((r) => r.toHuman())
-      //               .map((r) => hexToString(r));
-      //             console.log(roles);
-      //             setAuctions(roles);
-      //           },
-      //         )
-      //       : null;
-      //     console.log('keys: ', data.toJSON());
-      //   },
-      // );
+      unsub = await api.query.auctions.auctions.entries();
+      setAuctions(unsub.map((i) => [i[0].toHuman()[0], i[1].toJSON()]));
     };
 
-    api && getAuctions();
+    getAuctions();
 
-    return () => unsub && unsub();
-  }, [setAuctions, api]);
+    return () => unsub && unsub;
+  }, [api, setAuctions, accountPair]);
+
+  const [blockNumber, setBlockNumber] = React.useState(0);
+
+  const bestNumber = api.derive.chain.bestNumberFinalized;
 
   React.useEffect(() => {
-    const unsub = null;
+    let unsubscribeAll = null;
 
-    const getClasses = async () => {
-      console.log(
-        xxhashAsHex('ormlNft', 64) + xxhashAsHex('classes', 64).substr(2),
-      );
-      // unsub = await api.rpc.state.getKeysPaged(
-      //   xxhashAsHex(['Auctions','Auctions'],64),
-      //   100,
-      //   '0xca32a41f4b3ed51541756374696f6e73ca32a41f4b3ed51541756374696f6e73',
-      //   async (data) => {
-      //     setClasses(data);
-      //     console.log(data);
-      //   },
-      // );
-    };
+    bestNumber((number) => {
+      setBlockNumber(number.toNumber());
+    })
+      .then((unsub) => {
+        unsubscribeAll = unsub;
+      })
+      .catch(console.error);
 
-    getClasses();
+    return () => unsubscribeAll && unsubscribeAll();
+  }, [bestNumber]);
 
-    return () => unsub && unsub();
-  }, [api, setClasses]);
-
-  const [auctionStatus, setAuctionStatus] = React.useState('live');
-
-  // const getFilters = (auction) => {
-  //   if (auctionStatus === 'upcoming') {
-  //     return new Date(auction.startAt) > new Date();
-  //   }
-  //   if (auctionStatus === 'past') {
-  //     return new Date(auction.endAt) < new Date();
-  //   } else {
-  //     return (
-  //       new Date(auction.startAt) < new Date() &&
-  //       new Date(auction.endAt) > new Date()
-  //     );
-  //   }
-  // };
+  const getFilters = (auction) => {
+    if (auctionStatus === 'upcoming') {
+      return auction.start > blockNumber;
+    }
+    if (auctionStatus === 'past') {
+      return auction.end < blockNumber;
+    } else {
+      return auction.start < blockNumber && auction.end > blockNumber;
+    }
+  };
 
   return (
     <>
@@ -158,17 +128,60 @@ export const CardList = ({ accountPair }: CardListProps): JSX.Element => {
         {/* {classes.map((listClass) => (
           <Box>{listClass.metadata.toString()}</Box>
         ))} */}
-        {auctions.length > 0 &&
+        {auctions.length > 0 ? (
           auctions
-            // .filter((auction) => getFilters(auction))
-            .map((auction, index) => (
+            .filter((auction) => getFilters(auction[1]))
+            .sort(function (a, b) {
+              return b[0] - a[0];
+            })
+
+            .map((auction) => (
               <Card
-                key={index}
-                id={index}
-                auction={auction}
+                key={auction[0]}
+                id={auction[0]}
+                auction={auction[1]}
                 accountPair={accountPair}
+                currentBlock={blockNumber}
               />
-            ))}
+            ))
+        ) : (
+          <>
+            <Box
+              maxW="sm"
+              minHeight="300px"
+              borderWidth="1px"
+              borderStyle="dashed"
+              borderRadius="lg"
+              // bgColor="blue.50"
+              overflow="hidden"
+              as={Center}
+              p={8}
+            >
+              <Stack spacing={8} align="center">
+                <Heading fontSize="lg">There are no auctions yet</Heading>
+                <Stack spacing={2}>
+                  <Button colorScheme="blue" onClick={onOpen}>
+                    Create auction
+                  </Button>
+
+                  <Button variant="outline" onClick={onOpenNft}>
+                    Create NFT
+                  </Button>
+                </Stack>
+              </Stack>
+            </Box>
+            <CreateAuction
+              isOpen={isOpen}
+              onClose={onClose}
+              accountPair={accountPair}
+            />
+            <CreateNft
+              isOpen={isOpenNft}
+              onClose={onCloseNft}
+              accountPair={accountPair}
+            />
+          </>
+        )}
       </Grid>
     </>
   );

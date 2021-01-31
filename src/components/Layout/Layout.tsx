@@ -36,7 +36,7 @@ const Layout = ({
       />
       <Box m="0 auto" maxW="960" px="6" py="5">
         <Box as="main">{children}</Box>
-        <Box as="footer">
+        <Box as="footer" mt={16}>
           © {new Date().getFullYear()}, Built for{' '}
           <Link href="https://hack.encode.club/" color="blue.500" isExternal>
             Encode hackathon

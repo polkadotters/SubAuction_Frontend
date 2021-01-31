@@ -1,4 +1,5 @@
 import React from 'react';
+import { navigate } from 'gatsby';
 
 import {
   Text,
@@ -28,7 +29,12 @@ import {
   TabPanel,
   TabPanels,
   Tabs,
+  Grid,
 } from '@chakra-ui/react';
+
+import moment from 'moment';
+
+import { useSubstrate } from '@/substrate-lib';
 
 // Components
 import { TxButton } from '../../substrate-lib/components';
@@ -38,7 +44,7 @@ import Radio from './Form/Radio';
 // import { Auction } from '@/@types/auction';
 import { TxButtonType } from '../../substrate-lib/components/txButton.types';
 import { CreateAuctionProps } from './CreateAuction.types';
-import { nftList } from '@/utils/nft';
+import DatePicker from './Datepicker/Datepicker';
 
 // // Date manipulation
 // import moment from 'moment';
@@ -48,6 +54,8 @@ export const CreateAuction = ({
   onClose,
   accountPair,
 }: CreateAuctionProps): JSX.Element => {
+  const { api } = useSubstrate();
+
   const initialRef = React.useRef();
 
   // const [startAt, setStartAt] = React.useState(moment().add(30, 'minutes'));
@@ -55,7 +63,36 @@ export const CreateAuction = ({
 
   // const [state, executeMutation] = useMutation(AUCTION_MUTATION);
 
-  const options = nftList.map((i) => i[0][1].join('-'));
+  const [status, setStatus] = React.useState(null);
+  const [tabIndex, setTabIndex] = React.useState(0);
+  const [tokens, setTokens] = React.useState([]);
+  const [blockNumber, setBlockNumber] = React.useState(0);
+  const [numberTimer, setNumberTimer] = React.useState(0);
+
+  // const timer = () => {
+  //   setNumberTimer((time) => time + 1);
+  // };
+
+  // React.useEffect(() => {
+  //   const id = setInterval(timer, 3000);
+  //   return () => clearInterval(id);
+  // }, []);
+
+  const bestNumber = api.derive.chain.bestNumberFinalized;
+
+  React.useEffect(() => {
+    let unsubscribeAll = null;
+
+    bestNumber((number) => {
+      setBlockNumber(number.toNumber());
+    })
+      .then((unsub) => {
+        unsubscribeAll = unsub;
+      })
+      .catch(console.error);
+
+    return () => unsubscribeAll && unsubscribeAll();
+  }, [bestNumber]);
 
   const [state, setState] = React.useState({
     title: '',
@@ -63,8 +100,23 @@ export const CreateAuction = ({
     start: null,
     end: null,
     type: 'English',
-    token: options[0] || '',
+    token: '',
   });
+
+  const reset = () =>
+    setState({
+      title: '',
+      price: 0,
+      start: null,
+      end: null,
+      type: 'English',
+      token: '',
+    });
+
+  const onSuccess = () => {
+    onClose();
+    reset();
+  };
 
   const [tokenClass, tokenId] = state.token && state.token.split('-');
 
@@ -73,24 +125,23 @@ export const CreateAuction = ({
     price: number;
     start: number;
     end: number;
+    startDate: Date;
+    endDate: Date;
     type: string;
     token: string;
   };
 
   const handleChange = (fieldName: keyof FieldNames) => (
     e: React.ChangeEvent<HTMLInputElement>,
-  ): void =>
-    fieldName === 'price'
-      ? setState({ ...state, [fieldName]: e })
-      : setState({ ...state, [fieldName]: e.target.value });
+  ): void => {
+    if (fieldName === 'price') {
+      setState({ ...state, [fieldName]: e });
+    } else {
+      setState({ ...state, [fieldName]: e.target.value });
+    }
+  };
 
   const handleToken = (token): void => setState({ ...state, ['token']: token });
-
-  // Transaction status
-  const [status, setStatus] = React.useState(null);
-
-  // Form steps
-  const [tabIndex, setTabIndex] = React.useState(0);
 
   const handleTabsChange = (index) => {
     setTabIndex(index);
@@ -103,6 +154,22 @@ export const CreateAuction = ({
     state.start && state.end,
   ];
 
+  React.useEffect(() => {
+    let unsub = null;
+
+    const getTokensByOwner = async (owner) => {
+      unsub = await api.query.ormlNft.tokens.entries();
+      const ownerTokens = unsub.filter(
+        (token) => token[1].toHuman().owner === owner,
+      );
+      setTokens(ownerTokens);
+    };
+
+    accountPair && getTokensByOwner(accountPair.address);
+
+    return () => unsub && unsub;
+  }, [api, accountPair, setTokens]);
+
   return (
     <>
       <Modal
@@ -110,6 +177,7 @@ export const CreateAuction = ({
         isOpen={isOpen}
         onClose={onClose}
         size="xl"
+        motionPreset="scale"
       >
         <ModalOverlay />
         <ModalContent>
@@ -129,11 +197,14 @@ export const CreateAuction = ({
                 <TabPanels>
                   <TabPanel>
                     <FormLabel fontSize="lg">What are you selling?</FormLabel>
-                    <Radio options={options} handleChange={handleToken} />
+
+                    <Radio tokens={tokens} handleChange={handleToken} />
                   </TabPanel>
                   <TabPanel>
                     <FormControl id="email">
-                      <FormLabel>Pick a name for your auction</FormLabel>
+                      <FormLabel fontSize="lg">
+                        Pick a name for your auction
+                      </FormLabel>
                       <Input
                         onChange={handleChange('title')}
                         value={state.title}
@@ -144,7 +215,7 @@ export const CreateAuction = ({
                   <TabPanel>
                     <FormLabel fontSize="lg">Set a starting price</FormLabel>
                     <InputGroup size="lg">
-                      <InputLeftAddon>KSM</InputLeftAddon>
+                      <InputLeftAddon>SUB</InputLeftAddon>
                       <NumberInput
                         placeholder="Enter start price"
                         size="lg"
@@ -164,6 +235,11 @@ export const CreateAuction = ({
                   </TabPanel>
                   <TabPanel>
                     <FormControl id="start">
+                      {/* <Input
+                        value={state.startDate}
+                        onBlur={handleChange('startDate')}
+                        size="lg"
+                      /> */}
                       <FormLabel fontSize="lg">
                         Set the start block for auction
                       </FormLabel>
@@ -196,7 +272,7 @@ export const CreateAuction = ({
                       </Text>
                       , with a starting price{' '}
                       <Text as="span" fontWeight="bold">
-                        {state.price} KSM
+                        {state.price} SUB
                       </Text>
                       . Your auction starts at{' '}
                       <Text as="span" fontWeight="bold">
@@ -250,6 +326,7 @@ export const CreateAuction = ({
                   label="Create auction"
                   type={TxButtonType.SIGNEDTX}
                   setStatus={setStatus}
+                  onSuccess={onSuccess}
                   attrs={{
                     palletRpc: 'auctions',
                     callable: 'createAuction',
@@ -259,6 +336,7 @@ export const CreateAuction = ({
                         last_bid: null,
                         start: state.start,
                         end: state.end,
+                        owner: accountPair.address,
                         auction_type: state.type,
                         token_id: [tokenClass, tokenId],
                         minimal_bid: state.price,

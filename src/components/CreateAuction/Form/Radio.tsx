@@ -1,6 +1,15 @@
 import React from 'react';
 
-import { Box, HStack, useRadio, useRadioGroup } from '@chakra-ui/react';
+import {
+  Box,
+  Grid,
+  HStack,
+  Image,
+  Tooltip,
+  useRadio,
+  useRadioGroup,
+} from '@chakra-ui/react';
+import { hexToString } from '@polkadot/util';
 
 // 1. Create a component that consumes the `useRadio` hook
 function RadioCard(props: { children: React.ReactNode }): JSX.Element {
@@ -36,17 +45,17 @@ function RadioCard(props: { children: React.ReactNode }): JSX.Element {
 }
 
 interface ExampleProps {
-  options: any[];
+  tokens: any[];
   handleChange: void;
 }
 
 // Step 2: Use the `useRadioGroup` hook to control a group of custom radios.
-function Example({ options, handleChange }: ExampleProps): JSX.Element {
-  const optionList = options ? options : ['react', 'vue', 'svelte'];
+function Example({ tokens, handleChange }: ExampleProps): JSX.Element {
+  const options = tokens.map((i) => i[0].toHuman().join('-'));
 
   const { getRootProps, getRadioProps } = useRadioGroup({
     name: 'NFT',
-    defaultValue: options ? options[0] : 'react',
+    defaultValue: null,
     onChange: (e) => {
       handleChange(e);
     },
@@ -55,18 +64,33 @@ function Example({ options, handleChange }: ExampleProps): JSX.Element {
   const group = getRootProps();
 
   return (
-    <HStack {...group}>
-      {optionList.map((value) => {
+    <Grid
+      templateColumns="repeat(auto-fill, minmax(min(4rem, 100%), 1fr))"
+      gap={6}
+      {...group}
+    >
+      {tokens.map((token, index) => {
+        const value = token[0].toHuman().join('-');
         const radio = getRadioProps({ value });
         const [classId, tokenId] = value.split('-');
+        const metadata = token[1].toHuman().metadata;
+        // const hash = token[1].toHuman().metadata;
+        const imgSrc = JSON.parse(metadata.replace(/'/g, '"')).image || '';
+
         return (
-          <RadioCard key={value} {...radio}>
-            Class: {classId}, TokenId: {tokenId}
-          </RadioCard>
+          <Box key={index}>
+            <RadioCard key={value} {...radio}></RadioCard>
+            <Tooltip label={`Class: ${classId}, TokenId: ${tokenId}`}>
+              <Image
+                src={imgSrc}
+                fallbackSrc="https://via.placeholder.com/150"
+              />
+            </Tooltip>
+          </Box>
         );
       })}
-    </HStack>
+    </Grid>
   );
 }
 
-export default Example;
+export default React.memo(Example);

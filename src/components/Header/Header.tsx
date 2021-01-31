@@ -40,7 +40,7 @@ const Header = ({
                 </Text>
               </Link>
             </Heading>
-            <BlockNumber finalized />
+            <BlockNumber />
           </Stack>
           <Stack alignItems="center" isInline spacing={4}>
             <Menu

@@ -7,6 +7,7 @@ const global = (props) => ({
     color: props.colorMode === 'dark' ? 'gray.500' : 'whiteAlpha.400',
   },
 });
+
 const theme = extendTheme({ global });
 
 export default theme;

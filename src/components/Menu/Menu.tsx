@@ -2,6 +2,7 @@ import React from 'react';
 // import { deleteToken, setToken, getToken } from '@/utils/token';
 
 import {
+  Avatar,
   Button,
   Menu as MenuChakra,
   MenuButton,
@@ -22,6 +23,7 @@ import { BalanceProps } from './BalanceProps';
 // Components
 import CreateAuction from '@/components/CreateAuction';
 import { CreateNft } from '../CreateNft/CreateNft';
+import { avatar } from '@/utils/avatars';
 
 // Graphql connection
 // import gql from 'graphql-tag';
@@ -50,32 +52,6 @@ export const Main = ({
   setAccountAddress,
   accountPair,
 }: MenuProps): JSX.Element => {
-  // const isLoggedIn = !!getToken();
-
-  // const [state, executeMutation] = useMutation(LOGIN_MUTATION);
-
-  // const [userId, setUserId] = React.useState();
-
-  // const [result] = useQuery({ query: ALLUSERS_QUERY });
-  // const { data, fetching, error } = result;
-
-  // if (fetching) return <div>Fetching</div>;
-  // if (error) return <div>Error</div>;
-
-  // const usersToRender = data.allUsers.users;
-
-  // const login = (id) => {
-  //   const userId = parseInt(id);
-  //   executeMutation({ id: userId }).then(({ data }) => {
-  //     const token = data && data['login'].token;
-  //     if (token) {
-  //       setToken(token);
-  //       setUserId(id);
-  //       navigate('/');
-  //     }
-  //   });
-  // };
-
   // Create auction
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -112,23 +88,14 @@ export const Main = ({
     setAccountSelected(address);
   };
 
+  const adresy = [];
+  keyringOptions.map((account, index: number) => {
+    adresy.push(account.value);
+  });
+
   return (
     <>
       <MenuChakra isLazy>
-        {/* <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-            {`User #${userId}`}
-          </MenuButton>
-          <MenuList>
-            <MenuItem
-              onClick={() => {
-                deleteToken();
-                navigate('/');
-              }}
-            >
-              Logout
-            </MenuItem>
-          </MenuList>
-        </> */}
         <Button isFullWidth onClick={onOpenNft}>
           Create NFT
         </Button>
@@ -143,15 +110,27 @@ export const Main = ({
           w="100%"
           maxW="2xs"
         >
-          {accountPair?.meta.name.toUpperCase() || 'Connect wallet'}
+          <Avatar
+            name={accountPair?.meta.name.toUpperCase() || ''}
+            src={avatar[accountPair?.address] || ''}
+            mr={2}
+            size="xs"
+          />
+          <span>
+            {accountPair?.meta.name.toUpperCase() || 'Connect wallet'}
+          </span>
         </MenuButton>
         <MenuList>
           {keyringOptions.map((account, index: number) => (
             <>
-              <MenuItem
-                key={index}
-                onClick={() => onChange(account.value)}
-              >{`${account.text}`}</MenuItem>
+              <MenuItem key={index} onClick={() => onChange(account.value)}>
+                <Avatar
+                  name={account.text}
+                  src={avatar[account.value]}
+                  mr={2}
+                />
+                <span>{`${account.text}`}</span>
+              </MenuItem>
             </>
           ))}
         </MenuList>
@@ -161,6 +140,7 @@ export const Main = ({
         isOpen={isOpen}
         onClose={onClose}
         accountPair={accountPair}
+        setAccountAddress={setAccountAddress}
       />
       <CreateNft
         isOpen={isOpenNft}

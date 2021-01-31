@@ -21,13 +21,11 @@ import {
   InputLeftAddon,
 } from '@chakra-ui/react';
 
-// Utils
-import { hexToString } from '@polkadot/util';
-
 // Types
 import { TxButtonType } from '@/substrate-lib/components/txButton.types';
 import { BidModalProps } from './BidModal.types';
 import { TxButton } from '@/substrate-lib/components/TxButton';
+import { hexToString } from '@polkadot/util';
 
 export const BidModal = ({
   isOpen,
@@ -50,6 +48,10 @@ export const BidModal = ({
     e: React.ChangeEvent<HTMLInputElement>,
   ): void => setState({ ...state, [fieldName]: e });
 
+  const onSuccess = () => {
+    onClose();
+  };
+
   // Transaction status
   const [status, setStatus] = React.useState(null);
 
@@ -64,7 +66,7 @@ export const BidModal = ({
             <FormControl>
               <FormLabel>Your bid</FormLabel>
               <InputGroup size="lg">
-                <InputLeftAddon>KSM</InputLeftAddon>
+                <InputLeftAddon>SUB</InputLeftAddon>
                 <NumberInput
                   placeholder="Enter your amount"
                   size="lg"
@@ -82,12 +84,12 @@ export const BidModal = ({
             </FormControl>
 
             <Text fontSize="sm" fontStyle="italic" mt={2}>
-              Minimum bid is {auction.minimal_bid} KSM
+              Minimum bid is {auction.minimal_bid} SUB
             </Text>
             <Text fontSize="sm" mt={6}>
               You&apos;re about to place a bid of{' '}
               <Text as="span" fontWeight="bold">
-                {state.bid} KSM
+                {state.bid} SUB
               </Text>{' '}
               on auction{' '}
               <Text as="span" fontWeight="bold">
@@ -113,6 +115,7 @@ export const BidModal = ({
               label="Bid"
               type={TxButtonType.SIGNEDTX}
               setStatus={setStatus}
+              onSuccess={onSuccess}
               attrs={{
                 palletRpc: 'auctions',
                 callable: 'bidValue',
@@ -121,8 +124,6 @@ export const BidModal = ({
                 paramFields: [false, false],
               }}
             />
-            <Text>{status}</Text>
-            {JSON.stringify(state, null, 2)}
             <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
         </ModalContent>

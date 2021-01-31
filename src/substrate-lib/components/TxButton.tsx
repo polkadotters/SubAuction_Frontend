@@ -20,6 +20,7 @@ interface TxButtonsProps {
   label: string;
   colorScheme?: string;
   variant?: string;
+  onSuccess?: () => void;
   disabled?: boolean;
 }
 
@@ -32,6 +33,7 @@ const TxButton = ({
   type = TxButtonType.QUERY,
   attrs = null,
   disabled = false,
+  onSuccess,
 }: TxButtonsProps): JSX.Element => {
   // Hooks
   const { api } = useSubstrate();
@@ -107,8 +109,16 @@ const TxButton = ({
       ? setStatus('')
       : setStatus(`Current transaction status: ${status.type}`);
 
-    if (status.isFinalized) {
+    if (status.type === 'InBlock') {
       setIsLoading(false);
+      toast({
+        title: 'Transaction is in block...',
+        status: 'info',
+      });
+      onSuccess && onSuccess();
+    }
+
+    if (status.type === 'Finalized') {
       toast({
         title: 'All done!',
         description: `Block hash: ${status.asFinalized.toString()}`,
