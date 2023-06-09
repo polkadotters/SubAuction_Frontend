@@ -52,7 +52,7 @@
     "@polkadot/util-crypto": "^3.5.1",
     "axios": "^0.21.1",
     "framer-motion": "^3.1.1",
-    "gatsby": "2.29.1",
+    "gatsby": "4.25.7",
     "gatsby-image": "^2.8.0",
     "gatsby-plugin-manifest": "^2.9.1",
     "gatsby-plugin-react-helmet": "^3.7.0",
